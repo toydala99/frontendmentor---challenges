@@ -35,12 +35,12 @@ body{
 
 .card{
     background-color: var(--white);
-    max-width: 30rem;
+    max-width: 40rem;
     margin: 0 auto;
     border-radius: 2rem;
     height: 49.7rem;
     text-align: center;
-    filter: drop-shadow(0 0 0.75rem var(--grey));
+    filter: drop-shadow(0 0 0.5rem var(--grey));
 }
 
 .card img{
