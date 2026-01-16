@@ -35,7 +35,7 @@ body{
 
 .card{
     background-color: var(--white);
-    max-width: 30rem;
+    max-width: 20rem;
     margin: 0 auto;
     border-radius: 2rem;
     height: 49.7rem;
