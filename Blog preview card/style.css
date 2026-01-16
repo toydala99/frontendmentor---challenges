@@ -33,7 +33,7 @@ body{
 
 .card{
     background-color: var(--white);
-    max-width: 30.27rem;
+    max-width: 40.27rem;
     border-radius: 2rem;
     border-width: 1px;
     border-color: var(--black);
