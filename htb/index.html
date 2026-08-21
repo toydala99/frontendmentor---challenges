@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTB Meetup Luanda — How To Get Into Cybersecurity</title>
+<style>
+  :root{
+    --bg-void:#050806;
+    --bg-panel:#0b120e;
+    --bg-panel-2:#0e1712;
+    --line:#1c2b21;
+    --green:#9FEF00;
+    --green-dim:#5f8a1f;
+    --green-glow: rgba(159,239,0,0.35);
+    --text:#c9d6cd;
+    --text-dim:#6f7f75;
+    --red:#ff4d4d;
+    --font-mono:'JetBrains Mono','Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --font-body:'IBM Plex Mono', var(--font-mono);
+  }
+  *{box-sizing:border-box;}
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;}
+  }
+  html{scroll-behavior:smooth;}
+  html,body{
+    margin:0; padding:0; min-height:100%;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(159,239,0,0.07), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 20%, rgba(159,239,0,0.05), transparent 60%),
+      var(--bg-void);
+    color:var(--text);
+    font-family:var(--font-body);
+    line-height:1.6;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(159,239,0,0.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(159,239,0,0.022) 1px, transparent 1px);
+    background-size:38px 38px;
+    mask-image: radial-gradient(ellipse 100% 60% at 50% 0%, black 30%, transparent 85%);
+    z-index:0;
+  }
+  a{ color:inherit; }
+  .wrap{ position:relative; z-index:1; max-width:980px; margin:0 auto; padding:0 20px; }
+
+  /* ---------- NAV ---------- */
+  nav{
+    position:sticky; top:0; z-index:20;
+    backdrop-filter:blur(10px);
+    background:rgba(5,8,6,0.72);
+    border-bottom:1px solid var(--line);
+  }
+  nav .wrap{ display:flex; align-items:center; justify-content:space-between; padding:16px 20px; max-width:980px; }
+  .brand-mark{ display:flex; align-items:center; gap:10px; font-family:var(--font-mono); }
+  .brand-mark .glyph{
+    color:var(--bg-void); background:var(--green); font-weight:700;
+    padding:3px 8px; border-radius:3px; box-shadow:0 0 18px var(--green-glow);
+  }
+  .brand-mark .name{ font-weight:600; font-size:14px; letter-spacing:0.01em; }
+  .brand-mark .name span{ color:var(--green); }
+  .nav-cta{
+    font-size:12.5px; font-weight:700; color:#08120a; background:var(--green);
+    padding:9px 16px; border-radius:6px; text-decoration:none;
+    box-shadow:0 8px 20px -8px var(--green-glow);
+    transition:background .15s ease, transform .12s ease;
+    white-space:nowrap;
+  }
+  .nav-cta:hover{ background:#b4ff2c; transform:translateY(-1px); }
+
+  /* ---------- HERO ---------- */
+  .hero{ padding:74px 0 60px; }
+  .boot-log{ font-size:12.5px; color:var(--text-dim); margin:0 0 22px; }
+  .boot-log div{ margin-bottom:3px; opacity:0; animation:fadeIn .4s ease forwards; }
+  .boot-log div:nth-child(1){ animation-delay:.05s; }
+  .boot-log div:nth-child(2){ animation-delay:.25s; }
+  .boot-log div:nth-child(3){ animation-delay:.45s; }
+  .boot-log .ok{ color:var(--green); }
+  @keyframes fadeIn{ to{ opacity:1; } }
+
+  .status-chip{
+    font-size:11px; color:var(--green); border:1px solid var(--green-dim);
+    padding:5px 10px; border-radius:999px; display:inline-flex; align-items:center; gap:7px;
+    background:rgba(159,239,0,0.05); margin-bottom:24px;
+  }
+  .status-chip .dot{ width:6px;height:6px;border-radius:50%; background:var(--green); box-shadow:0 0 8px var(--green); animation:pulse 1.8s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1; transform:scale(1);} 50%{opacity:0.45; transform:scale(0.75);} }
+
+  h1.headline{
+    font-family:var(--font-mono);
+    font-size:clamp(34px, 6vw, 60px);
+    line-height:1.08;
+    letter-spacing:-0.02em;
+    color:#eef7ea;
+    margin:0 0 20px;
+  }
+  h1.headline .prompt{ color:var(--green-dim); }
+  h1.headline .typed{ color:var(--green); }
+  h1.headline .cursor{
+    display:inline-block; width:0.5ch; background:var(--green);
+    animation:blink 1s step-end infinite; margin-left:2px;
+  }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .hero-sub{
+    color:var(--text-dim); font-size:15.5px; max-width:56ch; margin:0 0 34px;
+  }
+  .hero-sub b{ color:var(--text); font-weight:600; }
+
+  .hero-ctas{ display:flex; gap:14px; flex-wrap:wrap; margin-bottom:44px; }
+  .btn-primary{
+    background:var(--green); color:#08120a; font-weight:700; font-size:14px;
+    padding:14px 22px; border-radius:6px; text-decoration:none;
+    display:inline-flex; align-items:center; gap:10px;
+    box-shadow:0 10px 30px -10px var(--green-glow);
+    transition:background .15s ease, transform .12s ease;
+  }
+  .btn-primary:hover{ background:#b4ff2c; }
+  .btn-primary .arrow{ transition:transform .15s ease; }
+  .btn-primary:hover .arrow{ transform:translateX(3px); }
+  .btn-ghost{
+    border:1px solid var(--line); color:var(--text); font-size:14px;
+    padding:14px 22px; border-radius:6px; text-decoration:none;
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .btn-ghost:hover{ border-color:var(--green-dim); color:var(--green); }
+
+  /* meta strip */
+  .meta{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:1px;
+    background:var(--line); border:1px solid var(--line); border-radius:8px; overflow:hidden;
+  }
+  .meta div{ background:var(--bg-panel-2); padding:16px 16px; }
+  .meta .k{ display:block; font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--green-dim); margin-bottom:6px; }
+  .meta .v{ font-size:14px; color:var(--text); }
+  .meta .v small{ display:block; color:var(--text-dim); font-size:11.5px; margin-top:2px; }
+
+  /* ---------- SECTION shared ---------- */
+  section{ padding:70px 0; border-top:1px solid var(--line); }
+  .eyebrow{
+    font-size:11px; text-transform:uppercase; letter-spacing:0.12em; color:var(--green-dim);
+    display:flex; align-items:center; gap:10px; margin-bottom:14px;
+  }
+  .eyebrow::before{ content:"//"; color:var(--green); }
+  h2.section-title{
+    font-family:var(--font-mono); font-size:clamp(22px,3.4vw,30px); color:#eef7ea; margin:0 0 16px; letter-spacing:-0.01em;
+  }
+  .section-lead{ color:var(--text-dim); font-size:15px; max-width:64ch; margin:0 0 40px; }
+
+  /* ---------- ABOUT / WHY ---------- */
+  .why-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+  .why-card{
+    background:var(--bg-panel-2); border:1px solid var(--line); border-radius:8px; padding:22px;
+    transition:border-color .15s ease, transform .15s ease;
+  }
+  .why-card:hover{ border-color:var(--green-dim); transform:translateY(-2px); }
+  .why-card .ic{ color:var(--green); font-family:var(--font-mono); font-size:20px; margin-bottom:14px; }
+  .why-card h3{ font-size:15px; color:var(--text); margin:0 0 8px; }
+  .why-card p{ font-size:13.5px; color:var(--text-dim); margin:0; }
+
+  /* ---------- AGENDA ---------- */
+  .agenda{ display:flex; flex-direction:column; }
+  .agenda-item{
+    display:grid; grid-template-columns:100px 1fr; gap:20px;
+    padding:20px 0; border-bottom:1px dashed var(--line);
+  }
+  .agenda-item:last-child{ border-bottom:none; }
+  .agenda-time{ color:var(--green); font-size:13.5px; font-weight:600; padding-top:2px; }
+  .agenda-body h3{ font-size:15.5px; color:var(--text); margin:0 0 5px; }
+  .agenda-body p{ font-size:13.5px; color:var(--text-dim); margin:0; }
+
+  /* ---------- LOCATION ---------- */
+  .location-grid{
+    display:grid; grid-template-columns:1.1fr 1fr; gap:24px; align-items:stretch;
+  }
+  .map-card{
+    background:var(--bg-panel-2); border:1px solid var(--line); border-radius:8px;
+    min-height:260px; position:relative; overflow:hidden;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .map-card svg{ width:100%; height:100%; }
+  .map-pin{
+    position:absolute; top:50%; left:50%; transform:translate(-50%,-100%);
+    display:flex; flex-direction:column; align-items:center;
+  }
+  .map-pin .head{
+    width:16px; height:16px; border-radius:50% 50% 50% 0; background:var(--green);
+    transform:rotate(-45deg); box-shadow:0 0 16px var(--green-glow);
+  }
+  .loc-details{ display:flex; flex-direction:column; justify-content:center; gap:18px; }
+  .loc-details .row{ display:flex; gap:12px; }
+  .loc-details .row .k{ width:110px; flex-shrink:0; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; color:var(--green-dim); padding-top:2px; }
+  .loc-details .row .v{ font-size:14px; color:var(--text); }
+  .loc-details .row .v small{ display:block; color:var(--text-dim); font-size:12.5px; margin-top:3px; }
+
+  /* ---------- AUDIENCE ---------- */
+  .audience-list{ display:flex; flex-direction:column; gap:0; }
+  .audience-item{
+    display:flex; align-items:baseline; gap:14px; padding:14px 0; border-bottom:1px dashed var(--line);
+  }
+  .audience-item:last-child{ border-bottom:none; }
+  .audience-item .mark{ color:var(--green); font-family:var(--font-mono); }
+  .audience-item p{ margin:0; font-size:14.5px; color:var(--text); }
+
+  /* ---------- FINAL CTA ---------- */
+  .final-cta{
+    text-align:center; padding:80px 0 90px;
+  }
+  .final-cta h2{
+    font-family:var(--font-mono); font-size:clamp(24px,4.4vw,38px); color:#eef7ea; margin:0 0 14px;
+  }
+  .final-cta p{ color:var(--text-dim); font-size:15px; max-width:50ch; margin:0 auto 30px; }
+
+  footer{
+    border-top:1px solid var(--line); padding:26px 0; text-align:center;
+    font-size:11.5px; color:var(--text-dim);
+  }
+  footer code{ color:var(--green-dim); background:rgba(159,239,0,0.06); padding:1px 6px; border-radius:4px; }
+
+  @media (max-width:760px){
+    .meta{ grid-template-columns:repeat(2,1fr); }
+    .why-grid{ grid-template-columns:1fr; }
+    .location-grid{ grid-template-columns:1fr; }
+    .agenda-item{ grid-template-columns:74px 1fr; }
+    nav .nav-cta{ padding:8px 12px; font-size:11.5px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand-mark">
+      <span class="glyph">&gt;_</span>
+      <span class="name">HACK<span>THE</span>BOX <span style="color:var(--text-dim);">// meetup Luanda</span></span>
+    </div>
+    <a class="nav-cta" href="register.html">Inscrever-se</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <!-- HERO -->
+  <section class="hero" style="border-top:none;">
+    <div class="boot-log">
+      <div><span class="ok">[OK]</span> conectando à comunidade HTB Luanda…</div>
+      <div><span class="ok">[OK]</span> carregando evento: <b style="color:var(--text)">meetup-luanda-2026</b></div>
+      <div><span class="ok">[OK]</span> tema identificado</div>
+    </div>
+
+    <span class="status-chip"><span class="dot"></span> evento presencial · vagas abertas</span>
+
+    <h1 class="headline">
+      <span class="prompt">$</span> whoami --learn<br>
+      <span class="typed">How To Get Into Cybersecurity</span><span class="cursor">&nbsp;</span>
+    </h1>
+
+    <p class="hero-sub">O <b>HTB Meetup Luanda</b> reúne iniciantes e profissionais de segurança para uma noite de conversas práticas sobre <b>como começar (ou acelerar) uma carreira em cibersegurança</b> — sem enrolação, direto da comunidade Hack The Box.</p>
+
+    <div class="hero-ctas">
+      <a class="btn-primary" href="register.html">garantir minha vaga <span class="arrow">→</span></a>
+      <a class="btn-ghost" href="#agenda">ver programação</a>
+    </div>
+
+    <div class="meta">
+      <div><span class="k">Tema</span><span class="v">How To Get Into<br>Cybersecurity</span></div>
+      <div><span class="k">Formato</span><span class="v">Presencial<br><small>ponto de encontro único</small></span></div>
+      <div><span class="k">Local</span><span class="v">Luanda, Angola<br><small>endereço no e-mail de confirmação</small></span></div>
+      <div><span class="k">Data</span><span class="v">Em breve<br><small>confirme seu e-mail para não perder</small></span></div>
+    </div>
+  </section>
+
+  <!-- WHY -->
+  <section id="sobre">
+    <div class="eyebrow">sobre o meetup</div>
+    <h2 class="section-title">Cibersegurança tem porta de entrada — vamos te mostrar onde ela fica</h2>
+    <p class="section-lead">Se você já tentou entrar na área e não sabia por onde começar, esse encontro é para você. Vamos falar sobre trilhas de aprendizado, certificações, portfólio, CTFs e o que realmente importa para o primeiro emprego.</p>
+
+    <div class="why-grid">
+      <div class="why-card">
+        <div class="ic">01_</div>
+        <h3>Trilhas de aprendizado</h3>
+        <p>Como estruturar seus estudos usando o Hack The Box e outras plataformas, sem se perder no caminho.</p>
+      </div>
+      <div class="why-card">
+        <div class="ic">02_</div>
+        <h3>Networking real</h3>
+        <p>Converse com quem já está no mercado e com quem, como você, está começando agora.</p>
+      </div>
+      <div class="why-card">
+        <div class="ic">03_</div>
+        <h3>Prática, não só teoria</h3>
+        <p>Dicas práticas de CTFs, labs e projetos que você pode colocar no currículo hoje mesmo.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- AGENDA -->
+  <section id="agenda">
+    <div class="eyebrow">programação</div>
+    <h2 class="section-title">O que rola na noite</h2>
+    <p class="section-lead">Uma agenda enxuta, pensada para dar tempo de aprender e de conversar.</p>
+
+    <div class="agenda">
+      <div class="agenda-item">
+        <div class="agenda-time">18:30</div>
+        <div class="agenda-body">
+          <h3>Recepção e credenciamento</h3>
+          <p>Chegada, check-in com o usuário cadastrado e boas-vindas com a organização.</p>
+        </div>
+      </div>
+      <div class="agenda-item">
+        <div class="agenda-time">19:00</div>
+        <div class="agenda-body">
+          <h3>Abertura — comunidade HTB Luanda</h3>
+          <p>Quem somos, o que é o Hack The Box e por que esse meetup existe.</p>
+        </div>
+      </div>
+      <div class="agenda-item">
+        <div class="agenda-time">19:15</div>
+        <div class="agenda-body">
+          <h3>Talk principal — How To Get Into Cybersecurity</h3>
+          <p>Caminhos reais para entrar na área: estudo, prática, certificações e primeiro emprego.</p>
+        </div>
+      </div>
+      <div class="agenda-item">
+        <div class="agenda-time">20:00</div>
+        <div class="agenda-body">
+          <h3>Mesa de perguntas e respostas</h3>
+          <p>Espaço aberto para tirar dúvidas com quem já vive o dia a dia da segurança.</p>
+        </div>
+      </div>
+      <div class="agenda-item">
+        <div class="agenda-time">20:30</div>
+        <div class="agenda-body">
+          <h3>Networking</h3>
+          <p>Momento livre para trocar contatos, formar grupos de estudo e fechar a noite.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AUDIENCE -->
+  <section id="publico">
+    <div class="eyebrow">para quem é</div>
+    <h2 class="section-title">Esse meetup é para você se…</h2>
+    <div class="audience-list">
+      <div class="audience-item"><span class="mark">→</span><p>Você quer migrar de carreira para cibersegurança e não sabe por onde começar.</p></div>
+      <div class="audience-item"><span class="mark">→</span><p>Você é estudante de TI e quer se especializar em segurança ofensiva ou defensiva.</p></div>
+      <div class="audience-item"><span class="mark">→</span><p>Você já resolve máquinas no Hack The Box e quer conhecer gente da comunidade.</p></div>
+      <div class="audience-item"><span class="mark">→</span><p>Você já trabalha na área e quer trocar experiências com quem está começando.</p></div>
+    </div>
+  </section>
+
+  <!-- LOCATION -->
+  <section id="local">
+    <div class="eyebrow">local</div>
+    <h2 class="section-title">Presencial, em Luanda</h2>
+    <div class="location-grid">
+      <div class="map-card">
+        <svg viewBox="0 0 400 260" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#0e1712"/>
+              <stop offset="100%" stop-color="#0b120e"/>
+            </linearGradient>
+          </defs>
+          <rect width="400" height="260" fill="url(#g1)"/>
+          <g stroke="#1c2b21" stroke-width="1">
+            <line x1="0" y1="40" x2="400" y2="40"/>
+            <line x1="0" y1="90" x2="400" y2="90"/>
+            <line x1="0" y1="140" x2="400" y2="140"/>
+            <line x1="0" y1="190" x2="400" y2="190"/>
+            <line x1="60" y1="0" x2="60" y2="260"/>
+            <line x1="150" y1="0" x2="150" y2="260"/>
+            <line x1="250" y1="0" x2="250" y2="260"/>
+            <line x1="340" y1="0" x2="340" y2="260"/>
+          </g>
+          <path d="M20 200 Q120 60 260 120 T380 40" stroke="#5f8a1f" stroke-width="2" fill="none" opacity="0.6"/>
+        </svg>
+        <div class="map-pin">
+          <div class="head"></div>
+        </div>
+      </div>
+      <div class="loc-details">
+        <div class="row">
+          <span class="k">Cidade</span>
+          <span class="v">Luanda, Angola</span>
+        </div>
+        <div class="row">
+          <span class="k">Endereço</span>
+          <span class="v">A confirmar<br><small>o local exato é enviado por e-mail após a inscrição</small></span>
+        </div>
+        <div class="row">
+          <span class="k">Formato</span>
+          <span class="v">100% presencial<br><small>não haverá transmissão online</small></span>
+        </div>
+        <div class="row">
+          <span class="k">Comunidade</span>
+          <span class="v">HTB Luanda<br><small>grupo oficial no Discord após inscrição</small></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="final-cta" style="border-top:1px solid var(--line);">
+    <div class="eyebrow" style="justify-content:center;">última linha</div>
+    <h2>./garantir-vaga --agora</h2>
+    <p>As vagas são limitadas e o registro leva menos de dois minutos. Traga seu usuário do Hack The Box, Discord e Meetup.com em mãos.</p>
+    <a class="btn-primary" href="register.html">ir para inscrição <span class="arrow">→</span></a>
+  </section>
+
+</div>
+
+<footer>
+  HTB Meetup Luanda · organizado pela comunidade local Hack The Box · dúvidas em <code>#meetup-suporte</code> no Discord
+</footer>
+
+</body>
+</html>

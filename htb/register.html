@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>root@htb-meetup:~# register</title>
+<style>
+  :root{
+    --bg-void:#050806;
+    --bg-panel:#0b120e;
+    --bg-panel-2:#0e1712;
+    --line:#1c2b21;
+    --green:#9FEF00;
+    --green-dim:#5f8a1f;
+    --green-glow: rgba(159,239,0,0.35);
+    --text:#c9d6cd;
+    --text-dim:#6f7f75;
+    --red:#ff4d4d;
+    --font-mono:'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    --font-body:'IBM Plex Mono', var(--font-mono);
+  }
+
+  *{box-sizing:border-box;}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important;}
+  }
+
+  html,body{
+    margin:0;
+    padding:0;
+    min-height:100%;
+    background:
+      radial-gradient(ellipse 900px 500px at 20% -10%, rgba(159,239,0,0.06), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 110%, rgba(159,239,0,0.05), transparent 60%),
+      var(--bg-void);
+    color:var(--text);
+    font-family:var(--font-body);
+    line-height:1.5;
+  }
+
+  /* subtle scanline / grid texture */
+  body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background-image:
+      linear-gradient(rgba(159,239,0,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(159,239,0,0.025) 1px, transparent 1px);
+    background-size:38px 38px;
+    mask-image: radial-gradient(ellipse 100% 80% at 50% 20%, black 30%, transparent 85%);
+    z-index:0;
+  }
+
+  .wrap{
+    position:relative;
+    z-index:1;
+    max-width:760px;
+    margin:0 auto;
+    padding:56px 20px 80px;
+  }
+
+  /* header / brand */
+  .brand{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:16px;
+    margin-bottom:28px;
+    flex-wrap:wrap;
+  }
+  .brand-mark{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:var(--font-mono);
+    letter-spacing:0.02em;
+  }
+  .brand-mark .glyph{
+    color:var(--bg-void);
+    background:var(--green);
+    font-weight:700;
+    padding:3px 8px;
+    border-radius:3px;
+    box-shadow:0 0 18px var(--green-glow);
+  }
+  .brand-mark .name{
+    color:var(--text);
+    font-weight:600;
+  }
+  .brand-mark .name span{ color:var(--green); }
+  .status-chip{
+    font-size:11px;
+    color:var(--green);
+    border:1px solid var(--green-dim);
+    padding:5px 10px;
+    border-radius:999px;
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    background:rgba(159,239,0,0.05);
+  }
+  .status-chip .dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--green);
+    box-shadow:0 0 8px var(--green);
+    animation:pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:1; transform:scale(1);}
+    50%{opacity:0.45; transform:scale(0.75);}
+  }
+
+  /* terminal window */
+  .terminal{
+    background:linear-gradient(180deg, var(--bg-panel-2), var(--bg-panel));
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:
+      0 0 0 1px rgba(159,239,0,0.03),
+      0 30px 60px -25px rgba(0,0,0,0.8),
+      0 0 90px -40px var(--green-glow);
+  }
+
+  .titlebar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:12px 16px;
+    background:#0a100c;
+    border-bottom:1px solid var(--line);
+  }
+  .tb-dot{width:11px;height:11px;border-radius:50%;background:#2a352d;}
+  .titlebar .path{
+    margin-left:8px;
+    font-size:12px;
+    color:var(--text-dim);
+    letter-spacing:0.02em;
+  }
+
+  .term-body{ padding:34px clamp(20px,4vw,48px) 40px; }
+
+  .boot-line{
+    font-size:13px;
+    color:var(--text-dim);
+    margin:0 0 4px;
+  }
+  .boot-line .ok{ color:var(--green); }
+
+  h1{
+    font-family:var(--font-mono);
+    font-size:clamp(24px,4vw,32px);
+    font-weight:700;
+    color:#eef7ea;
+    margin:18px 0 6px;
+    letter-spacing:-0.01em;
+  }
+  h1 .cursor{
+    display:inline-block;
+    width:0.55ch;
+    background:var(--green);
+    margin-left:2px;
+    animation:blink 1s step-end infinite;
+  }
+  @keyframes blink{ 50%{ opacity:0; } }
+
+  .sub{
+    color:var(--text-dim);
+    font-size:14.5px;
+    max-width:52ch;
+    margin:0 0 34px;
+  }
+  .sub b{ color:var(--text); font-weight:600; }
+
+  /* event meta strip */
+  .meta{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    border-radius:8px;
+    overflow:hidden;
+    margin-bottom:36px;
+  }
+  .meta div{
+    background:var(--bg-panel-2);
+    padding:12px 14px;
+  }
+  .meta .k{
+    display:block;
+    font-size:10.5px;
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    color:var(--green-dim);
+    margin-bottom:4px;
+  }
+  .meta .v{
+    font-size:13.5px;
+    color:var(--text);
+  }
+
+  form{ display:flex; flex-direction:column; gap:22px; }
+
+  .field{ display:flex; flex-direction:column; gap:8px; }
+
+  .field label{
+    font-size:12.5px;
+    color:var(--text-dim);
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .field label .prompt{ color:var(--green); }
+  .field label .req{ color:var(--red); font-size:11px; }
+
+  .input-row{
+    display:flex;
+    align-items:center;
+    background:#080d0a;
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:0 12px;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .input-row .fixed-prefix{
+    color:var(--text-dim);
+    font-size:14px;
+    padding-right:2px;
+    white-space:nowrap;
+    user-select:none;
+  }
+  .input-row:focus-within{
+    border-color:var(--green-dim);
+    box-shadow:0 0 0 3px rgba(159,239,0,0.08);
+  }
+  .input-row.error{
+    border-color:var(--red);
+    box-shadow:0 0 0 3px rgba(255,77,77,0.08);
+  }
+
+  input[type=text], input[type=email]{
+    flex:1;
+    background:transparent;
+    border:0;
+    outline:none;
+    color:var(--text);
+    font-family:var(--font-mono);
+    font-size:14.5px;
+    padding:12px 4px;
+  }
+  input::placeholder{ color:#3d4a41; }
+
+  .hint{
+    font-size:11.5px;
+    color:var(--text-dim);
+  }
+  .errtext{
+    font-size:11.5px;
+    color:var(--red);
+    display:none;
+  }
+  .field.has-error .errtext{ display:block; }
+  .field.has-error .hint{ display:none; }
+
+  .consent{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    font-size:12.5px;
+    color:var(--text-dim);
+    margin-top:4px;
+  }
+  .consent input{
+    margin-top:3px;
+    accent-color:var(--green);
+    width:15px; height:15px; flex-shrink:0;
+  }
+  .consent span b{ color:var(--text); }
+
+  button.submit{
+    margin-top:8px;
+    background:var(--green);
+    color:#08120a;
+    border:none;
+    border-radius:6px;
+    padding:14px 18px;
+    font-family:var(--font-mono);
+    font-weight:700;
+    font-size:14.5px;
+    letter-spacing:0.02em;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    transition:transform .12s ease, box-shadow .15s ease, background .15s ease;
+    box-shadow:0 10px 30px -10px var(--green-glow);
+  }
+  button.submit:hover{ background:#b4ff2c; box-shadow:0 12px 34px -8px var(--green-glow); }
+  button.submit:active{ transform:translateY(1px) scale(0.995); }
+  button.submit:disabled{ opacity:0.5; cursor:not-allowed; box-shadow:none; }
+  button.submit .arrow{ transition:transform .15s ease; }
+  button.submit:hover .arrow{ transform:translateX(3px); }
+
+  .foot-note{
+    text-align:center;
+    font-size:11.5px;
+    color:var(--text-dim);
+    margin-top:22px;
+  }
+  .foot-note code{
+    color:var(--green-dim);
+    background:rgba(159,239,0,0.06);
+    padding:1px 6px;
+    border-radius:4px;
+  }
+
+  /* success state */
+  .success{
+    display:none;
+    text-align:center;
+    padding:20px 6px 6px;
+  }
+  .success.show{ display:block; }
+  form.hide{ display:none; }
+  .success .check{
+    width:56px;height:56px;
+    margin:0 auto 18px;
+    border-radius:50%;
+    border:1px solid var(--green-dim);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--green);
+    font-size:24px;
+    box-shadow:0 0 30px -6px var(--green-glow);
+  }
+  .success h2{
+    font-family:var(--font-mono);
+    color:#eef7ea;
+    font-size:20px;
+    margin:0 0 8px;
+  }
+  .success p{ color:var(--text-dim); font-size:13.5px; max-width:44ch; margin:0 auto 22px; }
+  .success .ticket{
+    text-align:left;
+    background:#080d0a;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:16px 18px;
+    font-size:13px;
+    color:var(--text);
+    max-width:420px;
+    margin:0 auto;
+  }
+  .success .ticket div{ display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px dashed var(--line); }
+  .success .ticket div:last-child{ border-bottom:none; }
+  .success .ticket .lbl{ color:var(--text-dim); }
+  .success .ticket .val{ color:var(--green); }
+
+  @media (max-width:560px){
+    .meta{ grid-template-columns:1fr; }
+    .term-body{ padding:26px 18px 32px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div class="brand">
+    <div class="brand-mark">
+      <span class="glyph">&gt;_</span>
+      <span class="name">HACK<span>THE</span>BOX <span>// meetup</span></span>
+    </div>
+    <div class="status-chip"><span class="dot"></span> vagas abertas</div>
+  </div>
+
+  <div class="terminal">
+    <div class="titlebar">
+      <span class="tb-dot" style="background:#4a2323;"></span>
+      <span class="tb-dot" style="background:#4a3f23;"></span>
+      <span class="tb-dot" style="background:#233d23;"></span>
+      <span class="path">~/htb-meetup/luanda — register.sh</span>
+    </div>
+
+    <div class="term-body">
+      <p class="boot-line"><span class="ok">[OK]</span> conexão estabelecida com o servidor do meetup</p>
+      <p class="boot-line"><span class="ok">[OK]</span> formulário de inscrição carregado</p>
+
+      <h1>./register<span class="cursor">&nbsp;</span></h1>
+      <p class="sub">Preencha seus dados para garantir sua vaga no <b>Hack The Box Meetup Luanda</b>. Usamos seus usuários para te encontrar nos grupos do evento antes do dia.</p>
+
+      <div class="meta">
+        <div><span class="k">Local</span><span class="v" id="meta-local">UCAN, Luanda, Angola</span></div>
+        <div><span class="k">Formato</span><span class="v">Presencial + CTF</span></div>
+        <div><span class="k">Vagas</span><span class="v">Limitadas</span></div>
+      </div>
+
+      <form id="regForm" novalidate>
+
+        <div class="field" id="field-name">
+          <label for="fullname"><span class="prompt">$</span> nome completo <span class="req">*</span></label>
+          <div class="input-row">
+            <input type="text" id="fullname" name="fullname" placeholder="Ana Silva" autocomplete="name">
+          </div>
+          <span class="hint">Como devemos te chamar na credencial do evento.</span>
+          <span class="errtext">Digite seu nome completo.</span>
+        </div>
+
+        <div class="field" id="field-email">
+          <label for="email"><span class="prompt">$</span> e-mail <span class="req">*</span></label>
+          <div class="input-row">
+            <input type="email" id="email" name="email" placeholder="ana@exemplo.com" autocomplete="email">
+          </div>
+          <span class="hint">Enviaremos a confirmação e lembretes por aqui.</span>
+          <span class="errtext">Digite um e-mail válido.</span>
+        </div>
+
+        <div class="field" id="field-htb">
+          <label for="htb"><span class="prompt">$</span> usuário Hack The Box <span class="req">*</span></label>
+          <div class="input-row">
+            <span class="fixed-prefix">app.hackthebox.com/users/</span>
+            <input type="text" id="htb" name="htb" placeholder="seu_usuario_htb" autocomplete="off">
+          </div>
+          <span class="hint">O mesmo usuário do seu perfil na plataforma.</span>
+          <span class="errtext">Informe seu usuário do Hack The Box.</span>
+        </div>
+
+        <div class="field" id="field-discord">
+          <label for="discord"><span class="prompt">$</span> usuário Discord <span class="req">*</span></label>
+          <div class="input-row">
+            <span class="fixed-prefix">@</span>
+            <input type="text" id="discord" name="discord" placeholder="usuario.discord" autocomplete="off">
+          </div>
+          <span class="hint">Para te adicionar no servidor do meetup.</span>
+          <span class="errtext">Informe seu usuário do Discord.</span>
+        </div>
+
+        <div class="field" id="field-meetup">
+          <label for="meetup"><span class="prompt">$</span> usuário Meetup.com <span class="req">*</span></label>
+          <div class="input-row">
+            <span class="fixed-prefix">meetup.com/members/</span>
+            <input type="text" id="meetup" name="meetup" placeholder="seu_usuario_meetup" autocomplete="off">
+          </div>
+          <span class="hint">Usado para confirmar seu RSVP no grupo oficial.</span>
+          <span class="errtext">Informe seu usuário do Meetup.com.</span>
+        </div>
+
+        <label class="consent">
+          <input type="checkbox" id="consent" name="consent">
+          <span>Confirmo que os dados acima estão corretos e aceito que sejam usados apenas para organização deste meetup. <b>Sem spam, prometido.</b></span>
+        </label>
+
+        <button type="submit" class="submit" id="submitBtn">
+          ./register --me <!--span class="arrow">→</span-->
+        </button>
+      </form>
+
+      <div class="success" id="successBox">
+        <div class="check">✓</div>
+        <h2>Inscrição confirmada</h2>
+        <p>Sua vaga está reservada. Fique de olho no e-mail e no Discord para os próximos passos antes do meetup.</p>
+        <div class="ticket" id="ticket"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <p class="foot-note">precisa de ajuda? procure <code>#meetup-suporte</code> no Discord da comunidade</p>
+</div>
+
+<script>
+(function(){
+  const form = document.getElementById('regForm');
+  const submitBtn = document.getElementById('submitBtn');
+  const successBox = document.getElementById('successBox');
+  const ticket = document.getElementById('ticket');
+
+  const fields = [
+    { id:'fullname', fieldId:'field-name', validate: v => v.trim().length >= 3 },
+    { id:'email', fieldId:'field-email', validate: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) },
+    { id:'htb', fieldId:'field-htb', validate: v => /^[a-zA-Z0-9_\-\.]{2,32}$/.test(v.trim()) },
+    { id:'discord', fieldId:'field-discord', validate: v => v.trim().length >= 2 },
+    { id:'meetup', fieldId:'field-meetup', validate: v => v.trim().length >= 2 },
+  ];
+
+  function clearError(fieldId){
+    const wrap = document.getElementById(fieldId);
+    wrap.classList.remove('has-error');
+    wrap.querySelector('.input-row').classList.remove('error');
+  }
+
+  function setError(fieldId){
+    const wrap = document.getElementById(fieldId);
+    wrap.classList.add('has-error');
+    wrap.querySelector('.input-row').classList.add('error');
+  }
+
+  fields.forEach(f => {
+    const el = document.getElementById(f.id);
+    el.addEventListener('input', () => clearError(f.fieldId));
+  });
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    let valid = true;
+    const data = {};
+
+    fields.forEach(f => {
+      const el = document.getElementById(f.id);
+      const val = el.value.trim();
+      data[f.id] = val;
+      if (!f.validate(val)) {
+        setError(f.fieldId);
+        valid = false;
+      } else {
+        clearError(f.fieldId);
+      }
+    });
+
+    const consent = document.getElementById('consent');
+    if (!consent.checked) {
+      valid = false;
+      consent.parentElement.style.color = '#ff4d4d';
+    } else {
+      consent.parentElement.style.color = '';
+    }
+
+    if (!valid) {
+      const firstError = form.querySelector('.has-error, input:invalid');
+      if (firstError) firstError.scrollIntoView({ behavior:'smooth', block:'center' });
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = 'processando...';
+
+    setTimeout(() => {
+      const code = 'HTB-' + Math.random().toString(36).slice(2, 7).toUpperCase();
+      ticket.innerHTML = `
+        <div><span class="lbl">nome</span><span class="val">${escapeHtml(data.fullname)}</span></div>
+        <div><span class="lbl">e-mail</span><span class="val">${escapeHtml(data.email)}</span></div>
+        <div><span class="lbl">usuário HTB</span><span class="val">${escapeHtml(data.htb)}</span></div>
+        <div><span class="lbl">discord</span><span class="val">@${escapeHtml(data.discord)}</span></div>
+        <div><span class="lbl">meetup</span><span class="val">${escapeHtml(data.meetup)}</span></div>
+        <div><span class="lbl">código</span><span class="val">${code}</span></div>
+      `;
+      form.classList.add('hide');
+      successBox.classList.add('show');
+    }, 700);
+  });
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+})();
+</script>
+
+</body>
+</html>
